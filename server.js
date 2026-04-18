@@ -22,10 +22,9 @@ app.use(cors({
 }));
 
 // اتصال بقاعدة البيانات
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
+import mongoose from 'mongoose';
+
+mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('✅ MongoDB connected'))
   .catch(err => console.error('❌ MongoDB connection error:', err));
 
