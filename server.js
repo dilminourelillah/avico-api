@@ -15,7 +15,7 @@ app.use(bodyParser.json());
 app.use(cors());
 
 // اتصال بقاعدة البيانات
-mongoose.connect('mongodb://127.0.0.1:27017/avico_db')
+mongoose.connect('mongoose.connect(process.env.MONGO_URI)')
   .then(() => console.log('✅ MongoDB connected'))
   .catch(err => console.error('❌ MongoDB connection error:', err));
 
