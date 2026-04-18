@@ -1,0 +1,31 @@
+import express from 'express';
+import mongoose from 'mongoose';
+import bodyParser from 'body-parser';
+import cors from 'cors';
+import userRoutes from './routes/users.js';
+import metricsRoutes from './routes/metrics.js';
+import controlsRoutes from './routes/controls.js';
+import alertsRoutes from './routes/alerts.js';
+import cycleRoutes from './routes/cycle.js';
+
+const app = express();
+
+// Middleware
+app.use(bodyParser.json());
+app.use(cors());
+
+// اتصال بقاعدة البيانات
+mongoose.connect('mongodb://127.0.0.1:27017/avico_db')
+  .then(() => console.log('✅ MongoDB connected'))
+  .catch(err => console.error('❌ MongoDB connection error:', err));
+
+// ربط الـ routes
+app.use('/api/users', userRoutes);
+app.use('/api/metrics', metricsRoutes);
+app.use('/api/control', controlsRoutes);
+app.use('/api/alerts', alertsRoutes);
+app.use('/api/cycle', cycleRoutes);
+
+// تشغيل السيرفر
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`🚀 AVICO API running on port ${PORT}`));
