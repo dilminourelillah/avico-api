@@ -5,7 +5,7 @@ import bcrypt from 'bcrypt';
 const router = express.Router();
 
 // تسجيل مستخدم جديد (Register)
-router.post('/register', async (req, res) => {
+router.post('/signup', async (req, res) => {
   try {
     const { fullName, email, phone, deviceId, password } = req.body;
 
