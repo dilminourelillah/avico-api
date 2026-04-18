@@ -29,3 +29,6 @@ app.use('/api/cycle', cycleRoutes);
 // تشغيل السيرفر
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 AVICO API running on port ${PORT}`));
+app.get('/', (req, res) => {
+  res.send('API is running...');
+});
