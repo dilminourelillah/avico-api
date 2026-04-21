@@ -4,8 +4,8 @@ import bcrypt from 'bcrypt';
 
 const router = express.Router();
 
-// تسجيل مستخدم جديد (Register)
-router.post('/register', async (req, res) => {
+// تسجيل مستخدم جديد (Signup)
+router.post('/signup', async (req, res) => {
   try {
     const { fullName, email, phone, deviceId, password } = req.body;
 
@@ -27,7 +27,7 @@ router.post('/register', async (req, res) => {
     });
 
     await user.save();
-    res.status(201).json({ success: true, user });
+    res.status(201).json({ success: true, message: '✅ Signup successful', user });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
