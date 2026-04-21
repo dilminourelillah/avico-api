@@ -14,13 +14,16 @@ router.get('/:deviceId', async (req, res) => {
   }
 });
 
-// إضافة قيم جديدة (مؤقتاً Mock أو لاحقاً من ESP32)
+// إضافة قيم جديدة من ESP32
 router.post('/:deviceId', async (req, res) => {
   try {
     const { deviceId } = req.params;
     const { temperature, humidity, nh3 } = req.body;
+
+    // إنشاء سجل جديد
     const metric = new Metrics({ deviceId, temperature, humidity, nh3 });
     await metric.save();
+
     res.status(201).json({ success: true, metric });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
