@@ -18,10 +18,10 @@ router.get('/:deviceId', async (req, res) => {
 router.post('/:deviceId', async (req, res) => {
   try {
     const { deviceId } = req.params;
-    const { temperature, humidity, nh3 } = req.body;
+    const { temperature, humidity, nh3, light } = req.body; // ✅ استقبل الضوء
 
     // إنشاء سجل جديد
-    const metric = new Metrics({ deviceId, temperature, humidity, nh3 });
+    const metric = new Metrics({ deviceId, temperature, humidity, nh3, light });
     await metric.save();
 
     res.status(201).json({ success: true, metric });
