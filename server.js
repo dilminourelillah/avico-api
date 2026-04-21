@@ -14,9 +14,9 @@ const app = express();
 // Middleware
 app.use(bodyParser.json());
 
-// فعل CORS (يسمح للواجهة تتصل بالسيرفر)
+// فعل CORS (يسمح للواجهة تتصل بالسيرفر من localhost و Render)
 app.use(cors({
-  origin: 'https://avico-dashboard.onrender.com', // رابط الواجهة
+  origin: ['http://localhost:8100', 'https://avico-dashboard.onrender.com'],
   methods: ['GET','POST','PUT','DELETE'],
   credentials: true
 }));
