@@ -3,6 +3,7 @@ import Controls from '../models/controls.js';
 
 const router = express.Router();
 
+// ✅ Route POST: يخزن أو يحدث القيم
 router.post('/:deviceId', async (req, res) => {
   try {
     const { deviceId } = req.params;
@@ -20,4 +21,19 @@ router.post('/:deviceId', async (req, res) => {
   }
 });
 
+// ✅ Route GET: يرجع القيم للـ ESP32
+router.get('/:deviceId', async (req, res) => {
+  try {
+    const { deviceId } = req.params;
+    const control = await Controls.findOne({ deviceId });
+    if (!control) {
+      return res.json({ success: false, message: 'No controls found' });
+    }
+    res.json({ success: true, controls: control });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 export default router;
+
