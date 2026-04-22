@@ -3,25 +3,40 @@ import Metrics from '../models/metrics.js';
 
 const router = express.Router();
 
-// جلب آخر القيم
+// ===== جلب آخر القيم =====
 router.get('/:deviceId', async (req, res) => {
   try {
     const { deviceId } = req.params;
-    const metrics = await Metrics.find({ deviceId }).sort({ createdAt: -1 }).limit(1);
+    const metrics = await Metrics.find({ deviceId })
+      .sort({ createdAt: -1 })
+      .limit(1);
+
+    if (!metrics || metrics.length === 0) {
+      return res.json({ success: false, message: 'No metrics found' });
+    }
+
     res.json({ success: true, metrics });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
 });
 
-// إضافة قيم جديدة من ESP32
+// ===== إضافة قيم جديدة من ESP32 =====
 router.post('/:deviceId', async (req, res) => {
   try {
     const { deviceId } = req.params;
     const { temperature, humidity, nh3, light } = req.body; // ✅ استقبل الضوء
 
-    // إنشاء سجل جديد
-    const metric = new Metrics({ deviceId, temperature, humidity, nh3, light });
+    // إنشاء سجل جديد مع الضوء
+    const metric = new Metrics({
+      deviceId,
+      temperature,
+      humidity,
+      nh3,
+      light,          // ✅ نخزن الضوء
+      createdAt: new Date()
+    });
+
     await metric.save();
 
     res.status(201).json({ success: true, metric });
