@@ -1,10 +1,15 @@
 import express from 'express';
 import User from '../models/users.js';
 import bcrypt from 'bcrypt';
+import nodemailer from 'nodemailer';
+import crypto from 'crypto';
 
 const router = express.Router();
 
-// تسجيل مستخدم جديد (Signup)
+// تخزين مؤقت للمستخدمين قبل التحقق
+let pendingUsers = {};
+
+// تسجيل مستخدم جديد (Signup → إرسال كود)
 router.post('/signup', async (req, res) => {
   try {
     const { fullName, email, phone, deviceId, password } = req.body;
@@ -18,16 +23,44 @@ router.post('/signup', async (req, res) => {
     // تشفير كلمة المرور
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const user = new User({
-      fullName,
-      email,
-      phone,
-      deviceId,
-      password: hashedPassword
+    // توليد كود 6 أرقام
+    const code = crypto.randomInt(100000, 999999).toString();
+
+    // تخزين مؤقت
+    pendingUsers[email] = { fullName, email, phone, deviceId, password: hashedPassword, code };
+
+    // إعداد البريد
+    let transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: { user: 'avicoavico786@gmail.com', pass: 'dilmi2002' }
     });
 
-    await user.save();
-    res.status(201).json({ success: true, message: '✅ Signup successful', user });
+    await transporter.sendMail({
+      from: 'avicoavico786@gmail.com>',
+      to: email,
+      subject: 'Email Verification',
+      text: `Your verification code is ${code}`
+    });
+
+    res.json({ success: true, message: '✅ Code sent to email' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// التحقق من الكود (Verify → تسجيل نهائي)
+router.post('/verify-email', async (req, res) => {
+  try {
+    const { email, code } = req.body;
+
+    if (pendingUsers[email] && pendingUsers[email].code === code) {
+      const user = new User(pendingUsers[email]);
+      await user.save();
+      delete pendingUsers[email];
+      return res.json({ success: true, message: '✅ Email verified successfully', user });
+    }
+
+    res.json({ success: false, message: '❌ Invalid code' });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
@@ -43,7 +76,6 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ success: false, message: '❌ Invalid credentials' });
     }
 
-    // مقارنة كلمة المرور
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({ success: false, message: '❌ Invalid credentials' });
@@ -55,7 +87,7 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// البحث عن مستخدم عبر Device ID (لربط ESP32)
+// البحث عن مستخدم عبر Device ID
 router.get('/device/:deviceId', async (req, res) => {
   try {
     const { deviceId } = req.params;
