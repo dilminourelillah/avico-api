@@ -35,12 +35,12 @@ router.post('/signup', async (req, res) => {
       auth: { user: 'avicoavico786@gmail.com', pass: 'dilmi2002' }
     });
 
-    await transporter.sendMail({
-      from: 'Avico <avicoavico786@gmail.com>',
-      to: email,
-      subject: 'Email Verification',
-      text: `Your verification code is ${code}`
-    });
+    // ❌ عطلنا الإرسال مؤقتًا
+console.log(`Verification code for ${email}: ${code}`);
+
+// ✅ نرجع رد مباشر للمستعمل
+res.json({ success: true, message: '✅ Code generated (check logs)', code });
+
 
     res.json({ success: true, message: '✅ Code sent to email' });
   } catch (err) {
