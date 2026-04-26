@@ -30,17 +30,8 @@ router.post('/signup', async (req, res) => {
     pendingUsers[email] = { fullName, email, phone, deviceId, password: hashedPassword, code };
 
     // إعداد البريد
-    let transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: { user: 'avicoavico786@gmail.com', pass: 'rgyf pzwx zdhh bhyy' }
-    });
-
-    await transporter.sendMail({
-      from: 'Avico <avicoavico786@gmail.com>',
-      to: email,
-      subject: 'Email Verification',
-      text: `Your verification code is ${code}`
-    });
+    console.log(`Verification code for ${email}: ${code}`);
+res.json({ success: true, message: '✅ Code generated (check logs)', code });
 
     res.json({ success: true, message: '✅ Code sent to email' });
   } catch (err) {
