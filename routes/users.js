@@ -29,26 +29,29 @@ router.post('/signup', async (req, res) => {
     // تخزين مؤقت
     pendingUsers[email] = { fullName, email, phone, deviceId, password: hashedPassword, code };
 
-    
     // إعداد البريد
-let transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: { user: 'dilminouari973@gmail.com', pass: 'mxgt zdmv awyv xerj' }
-});
+    let transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: { 
+        user: 'dilminouari973@gmail.com', 
+        pass: 'mxgt zdmv awyv xerj' // لازم يكون App Password من Gmail
+      }
+    });
 
-await transporter.sendMail({
-  from: 'Avico <dilminouari973@gmail.com>',
-  to: email,
-  subject: 'Email Verification',
-  text: `Your verification code is ${code}`
-});
+    // إرسال الكود عبر البريد
+    await transporter.sendMail({
+      from: 'Avico <dilminouari973@gmail.com>',
+      to: email,
+      subject: 'Email Verification',
+      text: `Your verification code is ${code}`
+    });
 
-res.json({ success: true, message: '✅ Code sent to email' });
-
-
-
+    // ✅ رد واحد فقط في حالة النجاح
     res.json({ success: true, message: '✅ Code sent to email' });
+
   } catch (err) {
+    console.error('Email error:', err);
+    // ✅ رد واحد فقط في حالة الخطأ
     res.status(500).json({ success: false, error: err.message });
   }
 });
