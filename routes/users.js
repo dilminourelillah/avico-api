@@ -32,7 +32,7 @@ router.post('/signup', async (req, res) => {
     // إعداد البريد
     let transporter = nodemailer.createTransport({
       service: 'gmail',
-      auth: { user: 'dilminouari973@gmail.com', pass: 'lnvw accv txby ydnj' }
+      auth: { user: 'dilminouari973@gmail.com', pass: 'wjtx moax lluk uree' }
     });
 
     await transporter.sendMail({
