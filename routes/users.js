@@ -36,7 +36,7 @@ router.post('/signup', async (req, res) => {
     });
 
     await transporter.sendMail({
-      from: 'Avico <avicoavico786@gmail.com>',
+      from: 'Avico <dilminouari973@gmail.com>',
       to: email,
       subject: 'Email Verification',
       text: `Your verification code is ${code}`
