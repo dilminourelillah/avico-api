@@ -33,20 +33,19 @@ router.post('/signup', async (req, res) => {
     let transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: { 
-        user: 'dilminouari973@gmail.com', 
-        pass: 'noje vmde cnvw nohu' // لازم يكون App Password من Gmail
+        user: 'dilmi7847@gmail.com', 
+        pass: 'imlx lbuj vmav rxlx' // ✅ App Password اللي عطيتني
       }
     });
 
     // إرسال الكود عبر البريد
     await transporter.sendMail({
-      from: 'Avico <dilminouari973@gmail.com>',
+      from: 'Avico <dilmi7847@gmail.com>',
       to: email,
       subject: 'Email Verification',
       text: `Your verification code is ${code}`
     });
 
-    // ✅ رد واحد فقط في حالة النجاح
     res.json({ success: true, message: '✅ Code sent to email' });
 
   } catch (err) {
