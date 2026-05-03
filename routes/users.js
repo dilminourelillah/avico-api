@@ -33,11 +33,11 @@ router.post('/signup', async (req, res) => {
     // إعداد البريد
 let transporter = nodemailer.createTransport({
   service: 'gmail',
-  auth: { user: 'dilmi7847@gmail.com', pass: 'segc cbvc npga kpti' }
+  auth: { user: 'dilminouari973@gmail.com', pass: 'mxgt zdmv awyv xerj' }
 });
 
 await transporter.sendMail({
-  from: 'Avico <dilmi7847@gmail.com>',
+  from: 'Avico <dilminouari973@gmail.com>',
   to: email,
   subject: 'Email Verification',
   text: `Your verification code is ${code}`
