@@ -30,23 +30,9 @@ router.post('/signup', async (req, res) => {
     pendingUsers[email] = { fullName, email, phone, deviceId, password: hashedPassword, code };
 
     // إعداد البريد
-let transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 587, // بدل 465
-  secure: false, // استعمل STARTTLS
-  auth: {
-    user: 'dilmi7847@gmail.com',
-    pass: 'imlx lbuj vmav rxlx'
-  }
-});
+console.log(`Verification code for ${email}: ${code}`);
+res.json({ success: true, message: '✅ Code generated (check logs)', code });
 
-    // إرسال الكود عبر البريد
-    await transporter.sendMail({
-      from: 'Avico <dilmi7847@gmail.com>',
-      to: email,
-      subject: 'Email Verification',
-      text: `Your verification code is ${code}`
-    });
 
     res.json({ success: true, message: '✅ Code sent to email' });
 
