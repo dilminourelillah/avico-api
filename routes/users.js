@@ -30,13 +30,15 @@ router.post('/signup', async (req, res) => {
     pendingUsers[email] = { fullName, email, phone, deviceId, password: hashedPassword, code };
 
     // إعداد البريد
-    let transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: { 
-        user: 'dilmi7847@gmail.com', 
-        pass: 'imlx lbuj vmav rxlx' // ✅ App Password اللي عطيتني
-      }
-    });
+let transporter = nodemailer.createTransport({
+  host: 'smtp.gmail.com',
+  port: 587, // بدل 465
+  secure: false, // استعمل STARTTLS
+  auth: {
+    user: 'dilmi7847@gmail.com',
+    pass: 'imlx lbuj vmav rxlx'
+  }
+});
 
     // إرسال الكود عبر البريد
     await transporter.sendMail({
