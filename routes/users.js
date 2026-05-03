@@ -34,7 +34,7 @@ router.post('/signup', async (req, res) => {
       service: 'gmail',
       auth: { 
         user: 'dilminouari973@gmail.com', 
-        pass: 'APP_PASSWORD_HNA' // لازم يكون App Password من Gmail
+        pass: 'noje vmde cnvw nohu' // لازم يكون App Password من Gmail
       }
     });
 
