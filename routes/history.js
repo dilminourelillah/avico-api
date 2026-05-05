@@ -9,17 +9,17 @@ router.get('/:deviceId', async (req, res) => {
     const { deviceId } = req.params;
     const { date } = req.query; // التاريخ يجي من الواجهة
 
-    // بداية اليوم (UTC)
     const start = new Date(date);
-    start.setUTCHours(0, 0, 0, 0);
 
-    // نهاية اليوم (UTC)
-    const end = new Date(date);
-    end.setUTCHours(23, 59, 59, 999);
-
+    // ✅ فلترة مباشرة باليوم فقط (YYYY-MM-DD)
     const history = await History.find({
       deviceId,
-      createdAt: { $gte: start, $lte: end }
+      $expr: {
+        $eq: [
+          { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+          start.toISOString().split('T')[0]
+        ]
+      }
     }).sort({ createdAt: -1 });
 
     res.json({ success: true, history });
