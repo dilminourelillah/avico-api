@@ -9,14 +9,17 @@ router.get('/:deviceId', async (req, res) => {
     const { deviceId } = req.params;
     const { date } = req.query; // التاريخ يجي من الواجهة
 
+    // بداية اليوم
     const start = new Date(date);
-    start.setHours(0,0,0,0);
-    const end = new Date(start);
-    end.setDate(end.getDate() + 1);
+    start.setHours(0, 0, 0, 0);
+
+    // نهاية اليوم
+    const end = new Date(date);
+    end.setHours(23, 59, 59, 999);
 
     const history = await History.find({
       deviceId,
-      createdAt: { $gte: start, $lt: end }
+      createdAt: { $gte: start, $lte: end }
     }).sort({ createdAt: -1 });
 
     res.json({ success: true, history });
