@@ -2,12 +2,21 @@ import express from 'express';
 import User from '../models/users.js';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
-import axios from 'axios';
+import nodemailer from 'nodemailer';
 
 const router = express.Router();
 
 // تخزين مؤقت للمستخدمين قبل التحقق
 let pendingUsers = {};
+
+// إعداد Nodemailer مع Gmail
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: 'dilminouari973@gmail.com', // بريدك Gmail
+    pass: 'yqnv vern cmus mmfo'  // App Password من إعدادات Gmail
+  }
+});
 
 // تسجيل مستخدم جديد (Signup → إرسال كود)
 router.post('/signup', async (req, res) => {
@@ -29,15 +38,12 @@ router.post('/signup', async (req, res) => {
     // تخزين مؤقت
     pendingUsers[email] = { fullName, email, phone, deviceId, password: hashedPassword, code };
 
-    // إرسال البريد عبر Elastic Email
-    await axios.post("https://api.elasticemail.com/v2/email/send", null, {
-      params: {
-        apikey: "83AE7B90B776EF501F6F04EBFECD2EA6E6071E3206FB164F6838092526C7D18BD0A3E0B6F828FD7B2CDD7DF4EF5359E4",
-        subject: "Email Verification",
-        from: "dilminouari973@gmail.com", // لازم يكون verified sender
-        to: email,
-        bodyText: `Your verification code is ${code}`,
-      },
+    // إرسال البريد عبر Nodemailer
+    await transporter.sendMail({
+      from: 'Avico <dilminouari973@gmail.com>',
+      to: email,
+      subject: 'Email Verification',
+      text: `Your verification code is ${code}`
     });
 
     res.json({ success: true, message: '✅ Code sent to email' });
