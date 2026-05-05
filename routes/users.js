@@ -1,10 +1,15 @@
 import express from 'express';
 import User from '../models/users.js';
 import bcrypt from 'bcrypt';
+import crypto from 'crypto';
+import axios from 'axios';
 
 const router = express.Router();
 
-// تسجيل مستخدم جديد (Signup)
+// تخزين مؤقت للمستخدمين قبل التحقق
+let pendingUsers = {};
+
+// تسجيل مستخدم جديد (Signup → إرسال كود)
 router.post('/signup', async (req, res) => {
   try {
     const { fullName, email, phone, deviceId, password } = req.body;
@@ -18,19 +23,24 @@ router.post('/signup', async (req, res) => {
     // تشفير كلمة المرور
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // إنشاء مستخدم جديد بحالة غير متحقق
-    const user = new User({
-      fullName,
-      email,
-      phone,
-      deviceId,
-      password: hashedPassword,
-      isVerified: false
+    // توليد كود 6 أرقام
+    const code = crypto.randomInt(100000, 999999).toString();
+
+    // تخزين مؤقت
+    pendingUsers[email] = { fullName, email, phone, deviceId, password: hashedPassword, code };
+
+    // إرسال البريد عبر Elastic Email
+    await axios.post("https://api.elasticemail.com/v2/email/send", null, {
+      params: {
+        apikey: "83AE7B90B776EF501F6F04EBFECD2EA6E6071E3206FB164F6838092526C7D18BD0A3E0B6F828FD7B2CDD7DF4EF5359E4",
+        subject: "Email Verification",
+        from: "dilminouari973@gmail.com", // لازم يكون verified sender
+        to: email,
+        bodyText: `Your verification code is ${code}`,
+      },
     });
 
-    await user.save();
-
-    res.json({ success: true, message: '✅ User created, waiting for phone verification', user });
+    res.json({ success: true, message: '✅ Code sent to email' });
 
   } catch (err) {
     console.error('Signup error:', err);
@@ -38,20 +48,19 @@ router.post('/signup', async (req, res) => {
   }
 });
 
-// تحديث حالة التحقق بعد نجاح Firebase
-router.post('/verify-phone', async (req, res) => {
+// التحقق من الكود (Verify → تسجيل نهائي)
+router.post('/verify-email', async (req, res) => {
   try {
-    const { email } = req.body;
+    const { email, code } = req.body;
 
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(404).json({ success: false, message: '❌ User not found' });
+    if (pendingUsers[email] && pendingUsers[email].code === code) {
+      const user = new User(pendingUsers[email]);
+      await user.save();
+      delete pendingUsers[email];
+      return res.json({ success: true, message: '✅ Email verified successfully', user });
     }
 
-    user.isVerified = true;
-    await user.save();
-
-    res.json({ success: true, message: '✅ Phone verified successfully', user });
+    res.json({ success: false, message: '❌ Invalid code' });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
@@ -67,16 +76,28 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ success: false, message: '❌ Invalid credentials' });
     }
 
-    if (!user.isVerified) {
-      return res.status(403).json({ success: false, message: '⚠️ Phone not verified yet' });
-    }
-
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({ success: false, message: '❌ Invalid credentials' });
     }
 
     res.json({ success: true, message: '✅ Login successful', user });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// البحث عن مستخدم عبر Device ID
+router.get('/device/:deviceId', async (req, res) => {
+  try {
+    const { deviceId } = req.params;
+    const user = await User.findOne({ deviceId });
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: '❌ No user found for this device' });
+    }
+
+    res.json({ success: true, user });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
