@@ -8,6 +8,7 @@ import metricsRoutes from './routes/metrics.js';
 import controlsRoutes from './routes/controls.js';
 import alertsRoutes from './routes/alerts.js';
 import cycleRoutes from './routes/cycle.js';
+import historyRoutes from './routes/history.js';
 
 const app = express();
 
@@ -32,6 +33,7 @@ app.use('/api/metrics', metricsRoutes);
 app.use('/api/control', controlsRoutes);
 app.use('/api/alerts', alertsRoutes);
 app.use('/api/cycle', cycleRoutes);
+app.use('/api/history', historyRoutes);
 
 // Route افتراضي للتأكد أن السيرفر يخدم
 app.get('/', (req, res) => {

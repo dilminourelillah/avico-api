@@ -1,5 +1,6 @@
 import express from 'express';
 import Metrics from '../models/metrics.js';
+import History from '../models/history.js'; // ✅ استدعاء موديل الهيستوريك
 
 const router = express.Router();
 
@@ -37,6 +38,14 @@ router.post('/:deviceId', async (req, res) => {
     });
 
     await metric.save();
+
+    // ✅ نسجل الحدث في History
+    await History.create({
+      deviceId,
+      event: 'New metrics received',
+      values: { temperature, humidity, nh3, light },
+      createdAt: new Date()
+    });
 
     res.status(201).json({ success: true, metric });
   } catch (err) {
