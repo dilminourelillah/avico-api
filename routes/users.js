@@ -9,6 +9,11 @@ router.post('/signup', async (req, res) => {
   try {
     const { fullName, email, phone, deviceId, password } = req.body;
 
+    // ✅ تحقق من الحقول الأساسية
+    if (!fullName || !email || !password) {
+      return res.status(400).json({ success: false, message: '❌ Missing required fields' });
+    }
+
     // تحقق إذا البريد موجود مسبقاً
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -22,8 +27,8 @@ router.post('/signup', async (req, res) => {
     const user = new User({
       fullName,
       email,
-      phone,
-      deviceId,
+      phone: phone || null,
+      deviceId: deviceId || null,
       password: hashedPassword,
       isVerified: false
     });
@@ -34,7 +39,7 @@ router.post('/signup', async (req, res) => {
 
   } catch (err) {
     console.error('Signup error:', err);
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({ success: false, message: '❌ Server error', error: err.message });
   }
 });
 
@@ -42,6 +47,10 @@ router.post('/signup', async (req, res) => {
 router.post('/verify-phone', async (req, res) => {
   try {
     const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ success: false, message: '❌ Email is required' });
+    }
 
     const user = await User.findOne({ email });
     if (!user) {
@@ -53,7 +62,8 @@ router.post('/verify-phone', async (req, res) => {
 
     res.json({ success: true, message: '✅ Phone verified successfully', user });
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    console.error('Verify error:', err);
+    res.status(500).json({ success: false, message: '❌ Server error', error: err.message });
   }
 });
 
@@ -61,6 +71,10 @@ router.post('/verify-phone', async (req, res) => {
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ success: false, message: '❌ Missing email or password' });
+    }
 
     const user = await User.findOne({ email });
     if (!user) {
@@ -78,7 +92,8 @@ router.post('/login', async (req, res) => {
 
     res.json({ success: true, message: '✅ Login successful', user });
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    console.error('Login error:', err);
+    res.status(500).json({ success: false, message: '❌ Server error', error: err.message });
   }
 });
 
