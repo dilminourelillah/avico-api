@@ -1,65 +1,60 @@
 import express from 'express';
 import User from '../models/users.js';
 import bcrypt from 'bcrypt';
+import crypto from 'crypto';
+import axios from 'axios';
 
 const router = express.Router();
 
-// تسجيل مستخدم جديد (Signup)
+// تخزين مؤقت للمستخدمين قبل التحقق
+let pendingUsers = {};
+
+// تسجيل مستخدم جديد (Signup → إرسال كود)
 router.post('/signup', async (req, res) => {
   try {
     const { fullName, email, phone, deviceId, password } = req.body;
 
-    if (!fullName || !email || !password) {
-      return res.status(400).json({ success: false, message: '❌ Missing required fields' });
-    }
-
+    // تحقق إذا البريد موجود مسبقاً
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ success: false, message: '⚠️ Email already registered' });
     }
 
+    // تشفير كلمة المرور
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const user = new User({
-      fullName,
-      email,
-      phone: phone || null,
-      deviceId: deviceId || null,
-      password: hashedPassword,
-      isVerified: false
-    });
+    // توليد كود 6 أرقام
+    const code = crypto.randomInt(100000, 999999).toString();
 
-    await user.save();
+    // تخزين مؤقت
+    pendingUsers[email] = { fullName, email, phone, deviceId, password: hashedPassword, code };
 
-    res.json({ success: true, message: '✅ User created, waiting for SMS verification', user });
+    // إرسال البريد عبر Elastic Email
+ console.log(`Verification code for ${email}: ${code}`);
+res.json({ success: true, message: '✅ Code generated (check logs)', code });
+
 
   } catch (err) {
     console.error('Signup error:', err);
-    res.status(500).json({ success: false, message: '❌ Server error', error: err.message });
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 
-// تحديث حالة التحقق بعد نجاح Firebase SMS
-router.post('/verify-phone', async (req, res) => {
+// التحقق من الكود (Verify → تسجيل نهائي)
+router.post('/verify-email', async (req, res) => {
   try {
-    const { email } = req.body;
+    const { email, code } = req.body;
 
-    if (!email) {
-      return res.status(400).json({ success: false, message: '❌ Email is required' });
+    if (pendingUsers[email] && pendingUsers[email].code === code) {
+      const user = new User(pendingUsers[email]);
+      await user.save();
+      delete pendingUsers[email];
+      return res.json({ success: true, message: '✅ Email verified successfully', user });
     }
 
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(404).json({ success: false, message: '❌ User not found' });
-    }
-
-    user.isVerified = true;
-    await user.save();
-
-    res.json({ success: true, message: '✅ Phone verified successfully', user });
+    res.json({ success: false, message: '❌ Invalid code' });
   } catch (err) {
-    console.error('Verify error:', err);
-    res.status(500).json({ success: false, message: '❌ Server error', error: err.message });
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 
@@ -68,17 +63,9 @@ router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    if (!email || !password) {
-      return res.status(400).json({ success: false, message: '❌ Missing email or password' });
-    }
-
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(401).json({ success: false, message: '❌ Invalid credentials' });
-    }
-
-    if (!user.isVerified) {
-      return res.status(403).json({ success: false, message: '⚠️ Phone not verified yet' });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
@@ -88,8 +75,23 @@ router.post('/login', async (req, res) => {
 
     res.json({ success: true, message: '✅ Login successful', user });
   } catch (err) {
-    console.error('Login error:', err);
-    res.status(500).json({ success: false, message: '❌ Server error', error: err.message });
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// البحث عن مستخدم عبر Device ID
+router.get('/device/:deviceId', async (req, res) => {
+  try {
+    const { deviceId } = req.params;
+    const user = await User.findOne({ deviceId });
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: '❌ No user found for this device' });
+    }
+
+    res.json({ success: true, user });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 
