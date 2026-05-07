@@ -2,14 +2,17 @@ import express from 'express';
 import User from '../models/users.js';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
-import axios from 'axios';
+import { Resend } from 'resend';
 
 const router = express.Router();
+
+// ✅ إعداد Resend
+const resend = new Resend(process.env.RESEND_API_KEY || 're_9LiD7oXu_B6DnjTKjhEwXYYZGkcCCc6xF');
 
 // تخزين مؤقت للمستخدمين قبل التحقق
 let pendingUsers = {};
 
-// تسجيل مستخدم جديد (Signup → إرسال كود)
+// 🟢 تسجيل مستخدم جديد (Signup → إرسال كود عبر الإيميل)
 router.post('/signup', async (req, res) => {
   try {
     const { fullName, email, phone, deviceId, password } = req.body;
@@ -29,10 +32,15 @@ router.post('/signup', async (req, res) => {
     // تخزين مؤقت
     pendingUsers[email] = { fullName, email, phone, deviceId, password: hashedPassword, code };
 
-    // إرسال البريد عبر Elastic Email
- console.log(`Verification code for ${email}: ${code}`);
-res.json({ success: true, message: '✅ Code generated (check logs)', code });
+    // 🔹 إرسال البريد عبر Resend
+    await resend.emails.send({
+      from: 'onboarding@resend.dev', // أو دومين موثق عندك
+      to: email,
+      subject: 'Email Verification',
+      html: `<p>Your verification code is <b>${code}</b></p>`
+    });
 
+    res.json({ success: true, message: '✅ Code sent to email' });
 
   } catch (err) {
     console.error('Signup error:', err);
@@ -40,7 +48,7 @@ res.json({ success: true, message: '✅ Code generated (check logs)', code });
   }
 });
 
-// التحقق من الكود (Verify → تسجيل نهائي)
+// 🟢 التحقق من الكود (Verify → تسجيل نهائي)
 router.post('/verify-email', async (req, res) => {
   try {
     const { email, code } = req.body;
@@ -58,7 +66,7 @@ router.post('/verify-email', async (req, res) => {
   }
 });
 
-// تسجيل الدخول (Login)
+// 🟢 تسجيل الدخول (Login)
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -79,7 +87,7 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// البحث عن مستخدم عبر Device ID
+// 🟢 البحث عن مستخدم عبر Device ID
 router.get('/device/:deviceId', async (req, res) => {
   try {
     const { deviceId } = req.params;
