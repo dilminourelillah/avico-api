@@ -17,7 +17,7 @@ app.use(bodyParser.json());
 
 // فعل CORS (يسمح للواجهة تتصل بالسيرفر من localhost و Render)
 app.use(cors({
-  origin: ['http://localhost:8100', 'https://avico-dashboard.onrender.com'],
+  origin: ['http://localhost:8100', 'https://avico-dashboard.onrender.com', 'https://avico-app.vercel.app'],
   methods: ['GET','POST','PUT','DELETE'],
   credentials: true
 }));
