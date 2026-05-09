@@ -7,11 +7,14 @@ import nodemailer from 'nodemailer';
 const router = express.Router();
 
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: 'smtp.gmail.com',
+  port: 587,
+  secure: false,
   auth: {
     user: 'dilminouari973@gmail.com',
     pass: 'gond weti ypgb snyp'
-  }
+  },
+  family: 4  // ← هذا يجبره على IPv4
 });
 
 let pendingUsers = {};
