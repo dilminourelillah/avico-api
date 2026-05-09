@@ -7,14 +7,13 @@ import nodemailer from 'nodemailer';
 const router = express.Router();
 
 const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 587,
-  secure: false,
+  host: 'smtp.zoho.com',
+  port: 465,
+  secure: true,
   auth: {
-    user: 'dilminouari973@gmail.com',
-    pass: 'gond weti ypgb snyp'
-  },
-  family: 4  // ← هذا يجبره على IPv4
+    user: 'avico19@zohomail.com',
+    pass: 'jDkzMadyi0Ja'
+  }
 });
 
 let pendingUsers = {};
@@ -30,7 +29,7 @@ router.post('/signup', async (req, res) => {
     const code = crypto.randomInt(100000, 999999).toString();
     pendingUsers[email] = { fullName, email, phone, deviceId, password: hashedPassword, code };
     await transporter.sendMail({
-      from: 'dilminouari973@gmail.com',
+      from: 'avico19@zohomail.com',
       to: email,
       subject: 'Email Verification - AVICO',
       html: `<p>Your verification code is <b>${code}</b></p>`
